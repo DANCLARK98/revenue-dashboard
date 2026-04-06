@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import type { DashboardData } from "@/lib/analytics";
-import MatrixRain from "./MatrixRain";
+import HudBackground from "./HudBackground";
 
-function HudCard({
+function Card({
   title,
   children,
   className = "",
@@ -14,14 +14,14 @@ function HudCard({
   className?: string;
 }) {
   return (
-    <div className={`hud-card hud-corners p-2.5 ${className}`}>
+    <div className={`hud-card p-3 ${className}`}>
       {title && (
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-1 h-1 bg-cyan-400/60" />
-          <h2 className="text-[9px] font-bold uppercase tracking-[0.3em] text-cyan-500/60">
+          <div className="w-1 h-1 bg-cyan-400/40 rounded-full" />
+          <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-400/50">
             {title}
           </h2>
-          <div className="flex-1 h-px bg-gradient-to-r from-cyan-500/20 to-transparent" />
+          <div className="flex-1 h-px bg-gradient-to-r from-cyan-500/10 to-transparent" />
         </div>
       )}
       {children}
@@ -29,27 +29,31 @@ function HudCard({
   );
 }
 
-function HexMetric({
+function Metric({
   label,
   value,
-  accent,
+  glow,
 }: {
   label: string;
   value: string | number;
-  accent?: "cyan" | "green" | "amber";
+  glow?: boolean;
 }) {
-  const glowClass =
-    accent === "green"
-      ? "neon-green"
-      : accent === "amber"
-        ? "neon-amber"
-        : "neon-text";
   return (
     <div className="text-center px-2">
-      <div className={`text-xl font-black tracking-tight ${glowClass}`}>
+      <div
+        className="text-xl font-bold text-white tracking-tight"
+        style={
+          glow
+            ? {
+                textShadow:
+                  "0 0 8px rgba(0,180,255,0.5), 0 0 20px rgba(0,120,255,0.2)",
+              }
+            : {}
+        }
+      >
         {value}
       </div>
-      <div className="text-[8px] uppercase tracking-[0.3em] text-blue-400/30 mt-0.5 font-bold">
+      <div className="text-[9px] uppercase tracking-[0.15em] text-slate-500 mt-0.5">
         {label}
       </div>
     </div>
@@ -61,7 +65,6 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [time, setTime] = useState("");
-  const [bootText, setBootText] = useState("");
 
   useEffect(() => {
     fetch("/api/leads")
@@ -89,40 +92,14 @@ export default function Dashboard() {
     return () => clearInterval(iv);
   }, []);
 
-  // Boot sequence
-  useEffect(() => {
-    if (loading) {
-      const lines = [
-        "> INITIALISING PROVERSE NEURAL NETWORK...",
-        "> CONNECTING TO PIPELINE DATABASE...",
-        "> LOADING LEAD INTELLIGENCE...",
-        "> DECRYPTING REVENUE MATRICES...",
-      ];
-      let i = 0;
-      const iv = setInterval(() => {
-        if (i < lines.length) {
-          setBootText((prev) => prev + (prev ? "\n" : "") + lines[i]);
-          i++;
-        }
-      }, 400);
-      return () => clearInterval(iv);
-    }
-  }, [loading]);
-
   if (loading) {
     return (
       <>
-        <MatrixRain />
-        <div className="crt-overlay" />
+        <HudBackground />
         <div className="vignette" />
         <div className="h-screen flex items-center justify-center relative z-10">
-          <div className="hud-card p-8 max-w-lg w-full">
-            <pre className="text-[11px] text-cyan-400/80 font-mono whitespace-pre-wrap leading-relaxed">
-              {bootText}
-            </pre>
-            <div className="mt-2 text-[11px] text-cyan-300/60 cursor-blink font-mono">
-              ESTABLISHING UPLINK
-            </div>
+          <div className="text-cyan-400/40 text-sm font-mono animate-pulse tracking-widest">
+            CONNECTING TO PIPELINE...
           </div>
         </div>
       </>
@@ -132,14 +109,17 @@ export default function Dashboard() {
   if (error) {
     return (
       <>
-        <MatrixRain />
-        <div className="crt-overlay" />
+        <HudBackground />
+        <div className="vignette" />
         <div className="h-screen flex items-center justify-center relative z-10">
           <div className="hud-card p-6 max-w-md text-center">
-            <div className="neon-red text-sm font-bold tracking-widest mb-2">
-              [ SYSTEM BREACH ]
+            <div className="text-red-400 text-sm font-semibold mb-2">
+              Failed to load data
             </div>
-            <div className="text-red-400/60 text-[11px] font-mono">{error}</div>
+            <div className="text-red-300/60 text-xs">{error}</div>
+            <div className="text-slate-600 text-[10px] mt-3">
+              Check GOOGLE_API_KEY and GOOGLE_SPREADSHEET_ID env vars
+            </div>
           </div>
         </div>
       </>
@@ -150,41 +130,38 @@ export default function Dashboard() {
 
   const maxStage = Math.max(...data.pipeline.map((s) => s.count), 1);
   const stageColors: Record<string, string> = {
-    scraped: "#1e40af",
-    enriched: "#2563eb",
-    audited: "#7c3aed",
+    scraped: "#334155",
+    enriched: "#3b82f6",
+    audited: "#6366f1",
     researched: "#0891b2",
     drafted: "#0284c7",
     sent: "#0ea5e9",
-    replied: "#00ff88",
-    signed: "#00ff88",
+    replied: "#22c55e",
+    signed: "#10b981",
   };
 
   return (
     <>
-      <MatrixRain />
-      <div className="crt-overlay" />
+      <HudBackground />
       <div className="vignette" />
       <div className="scanline" />
 
-      <div className="h-screen w-screen overflow-hidden relative z-10 flex flex-col p-3 gap-2">
+      <div className="h-screen w-screen overflow-hidden relative z-10 flex flex-col p-3 gap-2.5">
         {/* Header */}
         <div className="flex items-center justify-between flex-shrink-0 px-1">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 bg-cyan-400 pulse-glow" />
-              <div className="w-1.5 h-1.5 bg-blue-500/60 pulse-glow" style={{ animationDelay: "0.5s" }} />
-              <div className="w-1 h-1 bg-blue-600/40 pulse-glow" style={{ animationDelay: "1s" }} />
+              <div className="w-2 h-2 rounded-full bg-cyan-400/70 pulse-glow" />
             </div>
-            <span className="text-sm font-black uppercase tracking-[0.4em] neon-text">
+            <span className="text-sm font-bold uppercase tracking-[0.3em] text-white/90">
               Proverse
             </span>
-            <span className="text-[9px] uppercase tracking-[0.3em] text-blue-400/30 font-bold">
-              // Revenue Attribution System v1.0
+            <span className="text-[10px] uppercase tracking-[0.15em] text-slate-500">
+              Revenue Attribution
             </span>
           </div>
           <div className="flex items-center gap-5">
-            <span className="text-[9px] text-blue-500/30 uppercase tracking-[0.2em] font-bold">
+            <span className="text-[10px] text-slate-600 tracking-wide">
               {new Date().toLocaleDateString("en-GB", {
                 weekday: "short",
                 day: "numeric",
@@ -192,235 +169,296 @@ export default function Dashboard() {
                 year: "numeric",
               })}
             </span>
-            <span className="font-mono text-sm neon-text tracking-[0.2em]">
+            <span className="font-mono text-xs text-cyan-400/50 tracking-wider">
               {time}
             </span>
             <button
               onClick={() => window.location.reload()}
-              className="text-[9px] uppercase tracking-[0.2em] text-blue-500/30 hover:text-cyan-400 transition-colors font-bold border border-blue-500/10 px-2 py-0.5 hover:border-cyan-400/30"
+              className="text-[10px] uppercase tracking-widest text-slate-600 hover:text-cyan-400 transition-colors"
             >
-              [ Refresh ]
+              Refresh
             </button>
           </div>
         </div>
 
         {/* Metrics bar */}
         <div className="flex-shrink-0">
-          <HudCard className="flex items-center justify-around py-2.5">
-            <HexMetric label="Total Leads" value={data.totalLeads} accent="cyan" />
-            <div className="w-px h-6 bg-cyan-500/10" />
-            <HexMetric label="Emails Sent" value={data.totalSent} />
-            <div className="w-px h-6 bg-cyan-500/10" />
-            <HexMetric label="Replies" value={data.totalReplied} accent="green" />
-            <div className="w-px h-6 bg-cyan-500/10" />
-            <HexMetric label="Reply Rate" value={`${data.replyRate.toFixed(1)}%`} accent={data.replyRate >= 5 ? "green" : "amber"} />
-            <div className="w-px h-6 bg-cyan-500/10" />
-            <HexMetric label="Signed" value={data.totalSigned} accent="green" />
-            <div className="w-px h-6 bg-cyan-500/10" />
+          <Card className="flex items-center justify-around py-2.5">
+            <Metric label="Total Leads" value={data.totalLeads} glow />
+            <div className="w-px h-7 bg-blue-500/10" />
+            <Metric label="Emails Sent" value={data.totalSent} />
+            <div className="w-px h-7 bg-blue-500/10" />
+            <Metric label="Replies" value={data.totalReplied} glow />
+            <div className="w-px h-7 bg-blue-500/10" />
+            <Metric
+              label="Reply Rate"
+              value={`${data.replyRate.toFixed(1)}%`}
+              glow={data.replyRate >= 5}
+            />
+            <div className="w-px h-7 bg-blue-500/10" />
+            <Metric label="Signed" value={data.totalSigned} glow />
+            <div className="w-px h-7 bg-blue-500/10" />
             <div className="text-center px-2">
-              <div className="text-2xl font-black tracking-tight mega-glow">
+              <div
+                className="text-2xl font-black text-white tracking-tight"
+                style={{
+                  textShadow:
+                    "0 0 12px rgba(0,180,255,0.6), 0 0 30px rgba(0,120,255,0.25), 0 0 60px rgba(0,80,255,0.1)",
+                }}
+              >
                 £{data.totalRevenue.toLocaleString()}
               </div>
-              <div className="text-[8px] uppercase tracking-[0.3em] text-blue-400/30 mt-0.5 font-bold">
+              <div className="text-[9px] uppercase tracking-[0.15em] text-slate-500 mt-0.5">
                 Revenue
               </div>
             </div>
-          </HudCard>
+          </Card>
         </div>
 
         {/* Main grid */}
-        <div className="flex-1 min-h-0 grid grid-cols-4 grid-rows-2 gap-2">
-          {/* Pipeline Funnel — left column, full height */}
-          <HudCard title="Pipeline Funnel" className="row-span-2 flex flex-col">
+        <div className="flex-1 min-h-0 grid grid-cols-4 grid-rows-2 gap-2.5">
+          {/* Pipeline Funnel */}
+          <Card title="Pipeline Funnel" className="row-span-2 flex flex-col">
             <div className="flex-1 flex flex-col justify-around">
               {data.pipeline.map((stage) => {
-                const pct = maxStage > 0 ? (stage.count / maxStage) * 100 : 0;
-                const color = stageColors[stage.name] || "#1e40af";
-                const isActive = stage.name === "replied" || stage.name === "signed";
+                const pct =
+                  maxStage > 0 ? (stage.count / maxStage) * 100 : 0;
+                const color = stageColors[stage.name] || "#334155";
                 return (
                   <div key={stage.name} className="flex items-center gap-2">
-                    <div className="w-16 text-[9px] text-blue-400/40 capitalize text-right tracking-wider font-bold">
+                    <div className="w-16 text-[10px] text-slate-500 capitalize text-right">
                       {stage.name}
                     </div>
-                    <div className="flex-1 bg-blue-950/30 rounded-none h-4 overflow-hidden border border-blue-500/5">
+                    <div className="flex-1 bg-slate-800/30 rounded-sm h-4 overflow-hidden border border-white/[0.03]">
                       <div
-                        className={`h-full transition-all duration-1000 ${isActive ? "bar-glow" : ""}`}
+                        className="h-full rounded-sm transition-all duration-1000"
                         style={{
                           width: `${Math.max(pct, 3)}%`,
                           backgroundColor: color,
-                          boxShadow: `0 0 10px ${color}60, inset 0 1px 0 rgba(255,255,255,0.1)`,
+                          boxShadow: `0 0 8px ${color}50`,
                         }}
                       />
                     </div>
-                    <div className={`w-6 text-[11px] font-mono font-black text-right ${isActive ? "neon-green" : "text-cyan-400/60"}`}>
+                    <div className="w-6 text-[11px] font-mono font-bold text-slate-300 text-right">
                       {stage.count}
                     </div>
                   </div>
                 );
               })}
             </div>
-          </HudCard>
+          </Card>
 
-          {/* Verticals — top middle, 2 cols */}
-          <HudCard title="Vertical Intel" className="col-span-2 overflow-hidden flex flex-col">
+          {/* Verticals */}
+          <Card
+            title="Verticals"
+            className="col-span-2 overflow-hidden flex flex-col"
+          >
             <div className="flex-1 overflow-auto no-scrollbar">
-              <table className="w-full text-[10px]">
+              <table className="w-full text-[11px]">
                 <thead>
-                  <tr className="text-blue-400/25 text-[8px] uppercase tracking-[0.2em]">
-                    <th className="text-left pb-1 font-bold">Vertical</th>
-                    <th className="text-right pb-1 font-bold">Leads</th>
-                    <th className="text-right pb-1 font-bold">Sent</th>
-                    <th className="text-right pb-1 font-bold">Replied</th>
-                    <th className="text-right pb-1 font-bold">Rate</th>
-                    <th className="text-right pb-1 font-bold">Signed</th>
-                    <th className="text-right pb-1 font-bold">Rev</th>
+                  <tr className="text-slate-600 text-[9px] uppercase tracking-wider">
+                    <th className="text-left pb-1.5 font-medium">Vertical</th>
+                    <th className="text-right pb-1.5 font-medium">Leads</th>
+                    <th className="text-right pb-1.5 font-medium">Sent</th>
+                    <th className="text-right pb-1.5 font-medium">Replied</th>
+                    <th className="text-right pb-1.5 font-medium">Rate</th>
+                    <th className="text-right pb-1.5 font-medium">Signed</th>
+                    <th className="text-right pb-1.5 font-medium">Rev</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.verticals.slice(0, 7).map((v, i) => (
+                  {data.verticals.slice(0, 8).map((v) => (
                     <tr
                       key={v.name}
-                      className="border-t border-cyan-500/[0.04] hover:bg-cyan-500/[0.03]"
+                      className="border-t border-white/[0.03] hover:bg-cyan-500/[0.02]"
                     >
-                      <td className="py-1 text-cyan-300/70 font-bold">
-                        <span className="text-blue-500/20 mr-1">{String(i + 1).padStart(2, "0")}</span>
+                      <td className="py-1.5 font-medium text-slate-300">
                         {v.name}
                       </td>
-                      <td className="py-1 text-right text-blue-300/30 font-mono">{v.total}</td>
-                      <td className="py-1 text-right text-blue-300/30 font-mono">{v.sent}</td>
-                      <td className="py-1 text-right font-mono neon-text" style={{ opacity: v.replied > 0 ? 1 : 0.2 }}>{v.replied}</td>
-                      <td className="py-1 text-right font-mono font-bold">
-                        <span className={v.replyRate >= 10 ? "neon-green" : v.replyRate >= 5 ? "neon-amber" : "text-blue-400/20"}>
+                      <td className="py-1.5 text-right text-slate-500 font-mono">
+                        {v.total}
+                      </td>
+                      <td className="py-1.5 text-right text-slate-500 font-mono">
+                        {v.sent}
+                      </td>
+                      <td className="py-1.5 text-right text-cyan-400/70 font-mono">
+                        {v.replied}
+                      </td>
+                      <td className="py-1.5 text-right font-mono">
+                        <span
+                          className={
+                            v.replyRate >= 10
+                              ? "text-emerald-400"
+                              : v.replyRate >= 5
+                                ? "text-amber-400"
+                                : "text-slate-500"
+                          }
+                        >
                           {v.replyRate.toFixed(0)}%
                         </span>
                       </td>
-                      <td className={`py-1 text-right font-mono font-bold ${v.signed > 0 ? "neon-green" : "text-blue-400/20"}`}>{v.signed}</td>
-                      <td className={`py-1 text-right font-mono font-black ${v.revenue > 0 ? "neon-green" : "text-blue-400/15"}`}>
-                        {v.revenue > 0 ? `£${(v.revenue / 1000).toFixed(0)}k` : "—"}
+                      <td className="py-1.5 text-right text-emerald-400/70 font-mono">
+                        {v.signed}
+                      </td>
+                      <td className="py-1.5 text-right text-emerald-400 font-mono font-bold">
+                        {v.revenue > 0
+                          ? `£${(v.revenue / 1000).toFixed(0)}k`
+                          : "—"}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </HudCard>
+          </Card>
 
-          {/* Top Leads — right column, full height */}
-          <HudCard title="Priority Targets" className="row-span-2 overflow-hidden flex flex-col">
+          {/* Top Leads */}
+          <Card
+            title="Priority Targets"
+            className="row-span-2 overflow-hidden flex flex-col"
+          >
             <div className="flex-1 overflow-auto no-scrollbar space-y-1">
               {data.highPriority.length === 0 ? (
-                <div className="text-blue-500/20 text-[9px] text-center py-4 font-mono tracking-widest">
-                  NO TARGETS ACQUIRED
+                <div className="text-slate-600 text-[10px] text-center py-4">
+                  No high-priority leads
                 </div>
               ) : (
-                data.highPriority.map((l, i) => {
+                data.highPriority.map((l) => {
                   const score = parseInt(l.lead_score) || 0;
                   return (
                     <div
                       key={l.lead_id}
-                      className="flex items-center gap-2 p-1.5 border border-cyan-500/[0.06] hover:border-cyan-400/20 transition-all bg-blue-950/20 hover:bg-blue-950/40"
+                      className="flex items-center gap-2 p-1.5 rounded border border-white/[0.03] hover:border-cyan-500/15 transition-colors bg-white/[0.01]"
                     >
-                      <div className="text-[8px] text-blue-500/20 font-mono w-3">
-                        {String(i + 1).padStart(2, "0")}
-                      </div>
                       <div
-                        className={`text-sm font-black font-mono w-7 text-center ${
-                          score >= 85 ? "neon-green" : "neon-amber"
+                        className={`text-sm font-bold font-mono w-7 text-center ${
+                          score >= 85
+                            ? "text-emerald-400"
+                            : "text-amber-400"
                         }`}
+                        style={{
+                          textShadow: `0 0 8px ${score >= 85 ? "rgba(16,185,129,0.3)" : "rgba(245,158,11,0.25)"}`,
+                        }}
                       >
                         {score}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[10px] font-bold text-cyan-300/80 truncate">
+                        <div className="text-[10px] font-semibold text-white/80 truncate">
                           {l.store_name || l.store_url}
                         </div>
-                        <div className="text-[8px] text-blue-400/25 truncate font-bold tracking-wider">
-                          {[l.vertical, l.decision_maker].filter(Boolean).join(" // ")}
+                        <div className="text-[8px] text-slate-500 truncate">
+                          {[l.vertical, l.decision_maker]
+                            .filter(Boolean)
+                            .join(" / ")}
                         </div>
                       </div>
-                      <div className={`text-[8px] font-bold tracking-wider px-1 py-0.5 border ${
-                        l.status === "drafted" ? "text-cyan-400/50 border-cyan-500/15" :
-                        l.status === "sent" ? "text-blue-400/50 border-blue-500/15" :
-                        l.status === "replied" ? "neon-green border-green-500/20" :
-                        "text-blue-500/25 border-blue-500/10"
-                      }`}>
-                        {(l.status || "").toUpperCase()}
+                      <div className="text-[8px] text-slate-600 uppercase tracking-wide">
+                        {l.status}
                       </div>
                     </div>
                   );
                 })
               )}
             </div>
-          </HudCard>
+          </Card>
 
           {/* Outreach Angles */}
-          <HudCard title="Outreach Angles" className="overflow-hidden flex flex-col">
+          <Card
+            title="Outreach Angles"
+            className="overflow-hidden flex flex-col"
+          >
             <div className="flex-1 overflow-auto no-scrollbar">
               {data.angles.length === 0 ? (
-                <div className="text-blue-500/20 text-[9px] text-center py-4 font-mono tracking-widest">
-                  AWAITING OUTREACH DATA
+                <div className="text-slate-600 text-[10px] text-center py-4">
+                  No outreach data yet
                 </div>
               ) : (
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {data.angles.slice(0, 5).map((a, i) => (
                     <div key={i}>
                       <div className="flex items-center justify-between">
-                        <div className="text-[9px] text-cyan-300/50 truncate flex-1 mr-2">{a.angle}</div>
-                        <span className={`text-[10px] font-mono font-black ${
-                          a.replyRate >= 10 ? "neon-green" : a.replyRate >= 5 ? "neon-amber" : "text-blue-400/25"
-                        }`}>
+                        <span className="text-[10px] text-slate-400 truncate flex-1 mr-2">
+                          {a.angle}
+                        </span>
+                        <span
+                          className={`text-[11px] font-mono font-bold ${
+                            a.replyRate >= 10
+                              ? "text-emerald-400"
+                              : a.replyRate >= 5
+                                ? "text-amber-400"
+                                : "text-slate-500"
+                          }`}
+                        >
                           {a.replyRate.toFixed(0)}%
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <div className="flex-1 bg-blue-950/30 h-1.5 overflow-hidden border border-blue-500/5">
+                        <div className="flex-1 bg-slate-800/30 h-1.5 rounded-sm overflow-hidden border border-white/[0.02]">
                           <div
-                            className="h-full bg-blue-500/40"
+                            className="h-full rounded-sm"
                             style={{
                               width: `${a.sent > 0 ? (a.replied / a.sent) * 100 : 0}%`,
-                              boxShadow: "0 0 6px rgba(0,140,255,0.3)",
+                              backgroundColor: "rgba(0, 160, 255, 0.5)",
+                              boxShadow: "0 0 6px rgba(0,140,255,0.2)",
                             }}
                           />
                         </div>
-                        <span className="text-[8px] text-blue-400/20 font-mono">{a.sent}s/{a.replied}r</span>
+                        <span className="text-[9px] text-slate-600 font-mono">
+                          {a.sent}s/{a.replied}r
+                        </span>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-          </HudCard>
+          </Card>
 
           {/* Trigger Events */}
-          <HudCard title="Trigger Events" className="overflow-hidden flex flex-col">
+          <Card
+            title="Trigger Events"
+            className="overflow-hidden flex flex-col"
+          >
             <div className="flex-1 overflow-auto no-scrollbar">
               {data.triggers.length === 0 ? (
-                <div className="text-blue-500/20 text-[9px] text-center py-4 font-mono tracking-widest">
-                  NO TRIGGERS DETECTED
+                <div className="text-slate-600 text-[10px] text-center py-4">
+                  No trigger events yet
                 </div>
               ) : (
                 <div className="space-y-2">
                   {data.triggers.map((t) => {
-                    const maxCount = Math.max(...data.triggers.map((tr) => tr.count), 1);
+                    const maxCount = Math.max(
+                      ...data.triggers.map((tr) => tr.count),
+                      1
+                    );
                     const pct = (t.count / maxCount) * 100;
                     return (
                       <div key={t.type}>
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="text-[9px] text-cyan-400/50 font-bold">{t.type}</span>
-                          <span className="text-[9px] font-mono">
-                            <span className="text-blue-400/25">{t.count}x</span>
-                            {" "}
-                            <span className={t.replyRate >= 10 ? "neon-green" : "text-blue-400/25"}>
+                          <span className="text-[10px] text-slate-400">
+                            {t.type}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-600">
+                            {t.count}x{" "}
+                            <span
+                              className={
+                                t.replyRate >= 10
+                                  ? "text-emerald-400"
+                                  : "text-slate-500"
+                              }
+                            >
                               {t.replyRate.toFixed(0)}%
                             </span>
                           </span>
                         </div>
-                        <div className="bg-blue-950/30 h-2 overflow-hidden border border-blue-500/5">
+                        <div className="bg-slate-800/30 h-2 rounded-sm overflow-hidden border border-white/[0.02]">
                           <div
-                            className="h-full bar-glow"
+                            className="h-full rounded-sm"
                             style={{
                               width: `${pct}%`,
-                              background: `linear-gradient(90deg, rgba(0,80,200,0.6), rgba(0,180,255,0.4))`,
+                              background:
+                                "linear-gradient(90deg, rgba(0,80,200,0.5), rgba(0,160,255,0.4))",
+                              boxShadow: "0 0 6px rgba(0,140,255,0.2)",
                             }}
                           />
                         </div>
@@ -430,23 +468,15 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-          </HudCard>
+          </Card>
         </div>
 
         {/* Status bar */}
-        <div className="flex-shrink-0 flex items-center justify-between px-1 text-[8px] text-blue-500/20 uppercase tracking-[0.3em] font-bold">
-          <span className="flex items-center gap-2">
-            <span className="text-blue-500/10">[</span>
-            SYS.PROVERSE.LEADGEN
-            <span className="text-blue-500/10">]</span>
-          </span>
-          <span className="flex items-center gap-4">
-            <span>NODES: 18</span>
-            <span>AGENTS: 14</span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-cyan-400/80 pulse-glow" />
-              PIPELINE ONLINE
-            </span>
+        <div className="flex-shrink-0 flex items-center justify-between px-1 text-[9px] text-slate-600 uppercase tracking-[0.15em]">
+          <span>Proverse Autonomous Lead Gen</span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 pulse-glow" />
+            Pipeline Active
           </span>
         </div>
       </div>
