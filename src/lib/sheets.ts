@@ -1,5 +1,3 @@
-import { google } from "googleapis";
-
 export interface Lead {
   lead_id: string;
   store_url: string;
@@ -30,28 +28,20 @@ export interface Lead {
   linkedin_status: string;
 }
 
-function getAuth() {
-  const creds = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-  if (!creds) throw new Error("GOOGLE_SERVICE_ACCOUNT_KEY not set");
-  const parsed = JSON.parse(creds);
-  return new google.auth.GoogleAuth({
-    credentials: parsed,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-  });
-}
-
 export async function fetchLeads(): Promise<Lead[]> {
-  const auth = getAuth();
-  const sheets = google.sheets({ version: "v4", auth });
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) throw new Error("GOOGLE_API_KEY not set");
   const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
   if (!spreadsheetId) throw new Error("GOOGLE_SPREADSHEET_ID not set");
 
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId,
-    range: "Leads!A1:ZZ",
-  });
-
-  const rows = res.data.values;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Leads!A1:ZZ?key=${apiKey}`;
+  const res = await fetch(url, { next: { revalidate: 300 } });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Sheets API ${res.status}: ${body}`);
+  }
+  const data = await res.json();
+  const rows: string[][] = data.values;
   if (!rows || rows.length < 2) return [];
 
   const headers = rows[0].map((h: string) => h.trim().toLowerCase().replace(/\s+/g, "_"));
