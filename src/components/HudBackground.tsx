@@ -59,10 +59,10 @@ export default function HudBackground() {
       line(cx + cos * r, cy + sin * r, cx + cos * (r + len), cy + sin * (r + len), color, w);
     };
 
-    // Colors at different intensities
-    const c = (a: number) => `rgba(0, 160, 255, ${a})`;
-    const cBright = (a: number) => `rgba(0, 210, 255, ${a})`;
-    const cDim = (a: number) => `rgba(0, 100, 200, ${a})`;
+    // Colors — bold enough to actually see
+    const c = (a: number) => `rgba(0, 160, 255, ${Math.min(a * 3, 1)})`;
+    const cBright = (a: number) => `rgba(0, 210, 255, ${Math.min(a * 3.5, 1)})`;
+    const cDim = (a: number) => `rgba(0, 100, 200, ${Math.min(a * 2.5, 1)})`;
 
     const draw = () => {
       const W = canvas.width;
@@ -308,7 +308,8 @@ export default function HudBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-0 pointer-events-none"
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: 1 }}
     />
   );
 }
